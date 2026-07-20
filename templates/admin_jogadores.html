@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Admin — Jogadores{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <h2 style="color:#f5c518;font-size:1.4rem;font-weight:800">&#128202; Painel Admin</h2>
+  <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-sm">Sair</a>
+</div>
+
+<div class="admin-tabs">
+  <a href="{{ url_for('admin_jogos') }}"    class="admin-tab">&#9917; Fase de Grupos</a>
+  <a href="{{ url_for('admin_matamata') }}" class="admin-tab">&#127942; Mata-Mata</a>
+  <a href="{{ url_for('admin_prazos') }}"   class="admin-tab">&#9201; Prazos</a>
+  <a href="{{ url_for('admin_jogadores') }}" class="admin-tab ativo">&#128100; Jogadores</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Jogador</th>
+        <th>E-mail</th>
+        <th style="text-align:center">Palpites</th>
+        <th style="text-align:center">Pontos</th>
+        <th style="text-align:center">Cadastro</th>
+        <th style="text-align:center">Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in players %}
+      <tr>
+        <td style="font-weight:600;color:#e2e8f0">{{ p.username }}</td>
+        <td style="color:#475569;font-size:.83rem">{{ p.email or '—' }}</td>
+        <td style="text-align:center;color:#64748b">{{ p.total_palpites }}</td>
+        <td style="text-align:center"><span style="color:#f5c518;font-weight:700">{{ p.total_pontos }}</span></td>
+        <td style="text-align:center;font-size:.78rem;color:#334155">{{ p.created_at[:10] if p.created_at else '—' }}</td>
+        <td style="text-align:center">
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+            <form method="post" action="{{ url_for('admin_zerar_matamata_jogador', user_id=p.id) }}"
+                  onsubmit="return confirm('Zerar palpites do MATA-MATA de {{ p.username }}? Palpites de grupos serão mantidos.')">
+              <button type="submit" class="btn btn-sm" style="background:#1a2a1a;border:1px solid #f5c518;color:#f5c518">&#127942; Zerar Mata-Mata</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_zerar_jogador', user_id=p.id) }}"
+                  onsubmit="return confirm('Zerar TODOS os palpites de {{ p.username }}?')">
+              <button type="submit" class="btn btn-sm" style="background:#1e3a5f;border:1px solid #3b82f6;color:#60a5fa">&#128260; Zerar Tudo</button>
+            </form>
+            <form method="post" action="{{ url_for('admin_remover_jogador', user_id=p.id) }}"
+                  onsubmit="return confirm('Remover {{ p.username }}? Todos os palpites serão apagados.')">
+              <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;padding:40px;color:#334155">Nenhum jogador cadastrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div style="margin-top:12px;font-size:.78rem;color:#334155;text-align:right">
+  {{ players|length }} jogador(es) cadastrado(s)
+</div>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}Bolão Copa do Mundo 2026{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:48px 20px 36px">
+  <div style="font-size:3.5rem;margin-bottom:16px">&#9917;</div>
+  <h1 style="font-size:2.4rem;font-weight:900;color:#f5c518;letter-spacing:-1px;margin-bottom:10px">
+    Copa do Mundo 2026
+  </h1>
+  <p style="color:#64748b;font-size:1.05rem;max-width:480px;margin:0 auto 32px">
+    Preencha seus palpites para os 104 jogos — fase de grupos e mata-mata — e dispute com seus colegas!
+  </p>
+
+  {% if deadline.closed %}
+  <div style="background:#1a0a00;border:1px solid #b45309;border-radius:12px;padding:14px 24px;display:inline-block;margin-bottom:28px">
+    <div style="color:#f59e0b;font-weight:700;font-size:.95rem">&#128274; Prazo da fase de grupos encerrado</div>
+    <div style="color:#78350f;font-size:.82rem;margin-top:3px">O mata-mata ainda pode ser editado enquanto o prazo estiver aberto</div>
+  </div>
+  {% else %}
+  <div style="background:#071428;border:1px solid #1e3a5f;border-radius:14px;padding:18px 28px;display:inline-block;margin-bottom:28px">
+    <div style="color:#64748b;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">
+      &#9201; Prazo para palpites da fase de grupos — 10/06/2026 às 19h (Brasília)
+    </div>
+    <div style="display:flex;gap:14px;justify-content:center;align-items:center" id="countdown">
+      <div style="text-align:center">
+        <div style="font-size:2rem;font-weight:900;color:#f5c518;line-height:1" id="cd-days">{{ deadline.days }}</div>
+        <div style="font-size:.65rem;color:#475569;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">dias</div>
+      </div>
+      <div style="color:#1e3a5f;font-size:1.4rem;font-weight:900;padding-bottom:14px">:</div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;font-weight:900;color:#f5c518;line-height:1" id="cd-hours">{{ '%02d'|format(deadline.hours) }}</div>
+        <div style="font-size:.65rem;color:#475569;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">horas</div>
+      </div>
+      <div style="color:#1e3a5f;font-size:1.4rem;font-weight:900;padding-bottom:14px">:</div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;font-weight:900;color:#f5c518;line-height:1" id="cd-mins">{{ '%02d'|format(deadline.minutes) }}</div>
+        <div style="font-size:.65rem;color:#475569;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">min</div>
+      </div>
+      <div style="color:#1e3a5f;font-size:1.4rem;font-weight:900;padding-bottom:14px">:</div>
+      <div style="text-align:center">
+        <div style="font-size:2rem;font-weight:900;color:#f5c518;line-height:1" id="cd-secs">{{ '%02d'|format(deadline.seconds) }}</div>
+        <div style="font-size:.65rem;color:#475569;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">seg</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    {% if session.get('user') %}
+      <a href="{{ url_for('palpites') }}" class="btn btn-primary btn-lg">Meus Palpites</a>
+      <a href="{{ url_for('classificacao') }}" class="btn btn-outline btn-lg">Ver Classificação</a>
+    {% else %}
+      {% if not deadline.closed %}
+      <a href="{{ url_for('cadastro') }}" class="btn btn-primary btn-lg">Participar do Bolão</a>
+      {% endif %}
+      <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">Já tenho cadastro</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-val">{{ total_players }}</div>
+    <div class="stat-label">Participantes</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">72</div>
+    <div class="stat-label">Jogos (Grupos)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">32</div>
+    <div class="stat-label">Jogos (Mata-Mata)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:#4ade80">5 pts</div>
+    <div class="stat-label">Placar Exato</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">{{ total_finished }}</div>
+    <div class="stat-label">Jogos Encerrados</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">&#9878; Regras de Pontuação</div>
+
+  {# ── Fase de Grupos ── #}
+  <div style="margin-bottom:20px">
+    <div style="font-size:.72rem;color:#f5c518;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="background:#071428;border:1px solid #f5c518;border-radius:5px;padding:1px 7px">&#9917; Fase de Grupos</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#071428;border-radius:9px;flex:1;min-width:150px">
+        <span class="pts-badge pts-5" style="width:44px;font-size:.85rem">5 pts</span>
+        <div>
+          <div style="font-weight:700;color:#4ade80;font-size:.88rem">Placar Exato</div>
+          <div style="color:#475569;font-size:.75rem">Ex: você disse 2×1, foi 2×1</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#071428;border-radius:9px;flex:1;min-width:150px">
+        <span class="pts-badge pts-2" style="width:44px;font-size:.85rem">2 pts</span>
+        <div>
+          <div style="font-weight:700;color:#facc15;font-size:.88rem">Resultado Certo</div>
+          <div style="color:#475569;font-size:.75rem">Vitória / empate / derrota</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#071428;border-radius:9px;flex:1;min-width:150px">
+        <span class="pts-badge pts-0" style="width:44px;font-size:.85rem">0 pts</span>
+        <div>
+          <div style="font-weight:700;color:#475569;font-size:.88rem">Errou</div>
+          <div style="color:#334155;font-size:.75rem">Resultado e placar errados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Mata-Mata ── #}
+  <div style="border-top:1px solid #0f2540;padding-top:18px;margin-bottom:20px">
+    <div style="font-size:.72rem;color:#f5c518;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="background:#071428;border:1px solid #f5c518;border-radius:5px;padding:1px 7px">&#127942; Mata-Mata</span>
+    </div>
+
+    <div style="font-size:.78rem;color:#64748b;margin-bottom:10px">
+      O placar apostado é comparado com o resultado dos <strong style="color:#cbd5e1">90 minutos</strong>. Se houver prorrogação, com o <strong style="color:#cbd5e1">placar final da prorrogação</strong>.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+
+      <div style="background:#071428;border:1px solid #1e3a5f;border-radius:9px;padding:10px 12px">
+        <div style="font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #0f2540">
+          &#128336; Encerrado nos 90 minutos
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge pts-5" style="font-size:.8rem;width:38px">5 pts</span>
+            <span style="font-size:.82rem;color:#4ade80;font-weight:600">Placar exato</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge" style="font-size:.8rem;width:38px;background:#0a1a30;color:#fbbf24;border:1px solid #ca8a04">3 pts</span>
+            <span style="font-size:.82rem;color:#fbbf24;font-weight:600">Resultado certo</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge pts-0" style="font-size:.8rem;width:38px">0 pts</span>
+            <span style="font-size:.82rem;color:#475569">Errou</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#071428;border:1px solid #1e3a5f;border-radius:9px;padding:10px 12px">
+        <div style="font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #0f2540">
+          &#9203; Prorrogação / Pênaltis
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge pts-2" style="font-size:.8rem;width:38px">2 pts</span>
+            <span style="font-size:.82rem;color:#60a5fa;font-weight:600">Placar exato (ET)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge" style="font-size:.8rem;width:38px;background:#0a1428;color:#93c5fd;border:1px solid #3b82f6">1 pt</span>
+            <span style="font-size:.82rem;color:#93c5fd;font-weight:600">Resultado certo (ET)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pts-badge pts-0" style="font-size:.8rem;width:38px">0 pts</span>
+            <span style="font-size:.82rem;color:#475569">Errou</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {# ── Desempate ── #}
+  <div style="border-top:1px solid #0f2540;padding-top:18px">
+    <div style="font-size:.72rem;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Critérios de Desempate</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px">
+        <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#4ade80;white-space:nowrap">1°</span>
+        <span style="font-size:.85rem;color:#cbd5e1"><strong style="color:#4ade80">Grupos:</strong> mais placares exatos · <strong style="color:#f5c518">Mata-Mata:</strong> mais exatos nos 90 min</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px">
+        <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#4ade80;white-space:nowrap">2°</span>
+        <span style="font-size:.85rem;color:#cbd5e1"><strong style="color:#4ade80">Grupos:</strong> acertou placar exato do Brasil &#127470;&#127479; (jogos #7, #29, #49)</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px">
+        <span style="background:#132238;border:1px solid #1e3a5f;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#64748b;white-space:nowrap">3°</span>
+        <span style="font-size:.85rem;color:#94a3b8">Se persistir o empate — <strong style="color:#e2e8f0">divide o valor</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="card">
+    <div class="card-title">&#128197; Calendário de Prazos</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:.85rem;color:#64748b">
+      <div style="display:flex;justify-content:space-between"><span style="color:#cbd5e1">Fase de Grupos</span><span>10/06 19h</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#cbd5e1">Segunda Fase</span><span>28/06 12h</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#cbd5e1">Oitavas</span><span>04/07 12h</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#cbd5e1">Quartas</span><span>09/07 12h</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#cbd5e1">Semifinal / 3º</span><span>14/07 12h</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#f5c518;font-weight:700">Final</span><span style="color:#f5c518">19/07 12h</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#128203; Como Participar</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:.85rem;color:#64748b">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="background:#0a2a1a;color:#4ade80;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0">1</span>
+        <span style="color:#cbd5e1">Cadastre-se com nome, e-mail e senha de 4 dígitos</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="background:#0a2a1a;color:#4ade80;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0">2</span>
+        <span style="color:#cbd5e1">Preencha os palpites antes do prazo de cada fase</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="background:#0a2a1a;color:#4ade80;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0">3</span>
+        <span style="color:#cbd5e1">Acompanhe sua pontuação na classificação ao vivo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if not deadline.closed %}
+<script>
+(function(){
+  var deadline = new Date('{{ deadline.deadline_iso }}');
+  function pad(n){return n<10?'0'+n:n}
+  function tick(){
+    var now = new Date();
+    var diff = deadline - now;
+    if(diff <= 0){
+      document.getElementById('cd-days').textContent='0';
+      document.getElementById('cd-hours').textContent='00';
+      document.getElementById('cd-mins').textContent='00';
+      document.getElementById('cd-secs').textContent='00';
+      return;
+    }
+    var s = Math.floor(diff/1000);
+    document.getElementById('cd-days').textContent=Math.floor(s/86400);
+    document.getElementById('cd-hours').textContent=pad(Math.floor((s%86400)/3600));
+    document.getElementById('cd-mins').textContent=pad(Math.floor((s%3600)/60));
+    document.getElementById('cd-secs').textContent=pad(s%60);
+  }
+  tick();
+  setInterval(tick,1000);
+})();
+</script>
+{% endif %}
+{% endblock %}

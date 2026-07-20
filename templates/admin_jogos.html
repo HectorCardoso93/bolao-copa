@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Admin — Fase de Grupos{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <h2 style="color:#f5c518;font-size:1.4rem;font-weight:800">&#128202; Painel Admin</h2>
+  <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-sm">Sair</a>
+</div>
+
+<div class="admin-tabs">
+  <a href="{{ url_for('admin_jogos') }}"    class="admin-tab ativo">&#9917; Fase de Grupos</a>
+  <a href="{{ url_for('admin_matamata') }}" class="admin-tab">&#127942; Mata-Mata</a>
+  <a href="{{ url_for('admin_prazos') }}"   class="admin-tab">&#9201; Prazos</a>
+  <a href="{{ url_for('admin_jogadores') }}" class="admin-tab">&#128100; Jogadores</a>
+</div>
+
+<div style="background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.82rem;color:#475569">
+  Preencha o placar real e marque <strong style="color:#94a3b8">Encerrado</strong> para calcular a pontuação automaticamente.
+</div>
+
+<form method="post">
+  {% for key, group in groups.items() %}
+  <div class="section-header">{{ group.label }}</div>
+  <div class="card" style="padding:8px 16px">
+    {% for item in group.matches %}
+    {% set m = item.match %}
+    <input type="hidden" name="match_ids" value="{{ m.id }}">
+    <div class="match-row">
+      <span class="match-num">#{{ m.match_number }}</span>
+      <div style="display:grid;grid-template-columns:1fr 46px 20px 46px 1fr;align-items:center;gap:6px">
+        <span class="team team-home">{{ m.home_team }}</span>
+        <input type="number" name="home_{{ m.id }}" class="score-input"
+               value="{{ m.home_score if m.home_score is not none else '' }}" min="0" max="99" placeholder="0">
+        <span class="score-sep" style="text-align:center">×</span>
+        <input type="number" name="away_{{ m.id }}" class="score-input"
+               value="{{ m.away_score if m.away_score is not none else '' }}" min="0" max="99" placeholder="0">
+        <span class="team team-away">{{ m.away_team }}</span>
+      </div>
+      <span class="match-date-col">{{ m.match_date }}</span>
+      <div class="match-status">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#64748b;white-space:nowrap">
+          <input type="checkbox" name="finished_{{ m.id }}" value="1"
+                 {% if m.is_finished %}checked{% endif %}
+                 style="accent-color:#f5c518;width:15px;height:15px;cursor:pointer">
+          Encerrado
+        </label>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="sticky-bar">
+    <button type="submit" class="btn btn-success btn-lg">&#10003; Salvar Resultados e Recalcular Pontuação</button>
+  </div>
+</form>
+{% endblock %}

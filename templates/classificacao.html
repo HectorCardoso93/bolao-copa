@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Classificação — Bolão Copa 2026{% endblock %}
+{% block content %}
+
+{# ── Tabs ── #}
+<div style="display:flex;gap:4px;margin-bottom:24px;background:#071428;padding:6px;border-radius:10px;border:1px solid #1e3a5f">
+  <button onclick="showTab('group')" id="tab-group"
+          style="flex:1;padding:9px 16px;border-radius:7px;font-size:.9rem;font-weight:700;text-align:center;cursor:pointer;background:#0d1f38;color:#f5c518;border:1px solid #1e3a5f;transition:all .2s">
+    &#9917; Fase de Grupos
+  </button>
+  <button onclick="showTab('mm')" id="tab-mm"
+          style="flex:1;padding:9px 16px;border-radius:7px;font-size:.9rem;font-weight:700;text-align:center;cursor:pointer;background:transparent;color:#64748b;border:none;transition:all .2s">
+    &#127942; Mata-Mata
+  </button>
+</div>
+
+{# ═══════════════════════ FASE DE GRUPOS ═══════════════════════ #}
+<div id="pane-group">
+  <p style="color:#475569;font-size:.8rem;margin-bottom:16px">{{ total_finished_group }} jogo(s) encerrado(s) · {{ total_players }} participante(s)</p>
+
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:44px;text-align:center">#</th>
+          <th>Jogador</th>
+          <th style="text-align:center">Pontos</th>
+          <th style="text-align:center" title="Placares exatos (5pts) — critério 1 de desempate">Exatos</th>
+          <th style="text-align:center" title="Acertos Brasil (#7,#29,#49) — critério 2">&#127470;&#127479; Brasil</th>
+          <th style="text-align:center" title="Resultado certo (2pts)">Resultado</th>
+          <th style="text-align:center">Palpites</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in players_group %}
+        <tr {% if session.get('user') == p.username %}style="background:#071428!important"{% endif %}>
+          <td style="text-align:center;font-weight:800;font-size:1rem">
+            {% if loop.index == 1 %}<span class="rank-medal">&#129351;</span>
+            {% elif loop.index == 2 %}<span class="rank-medal">&#129352;</span>
+            {% elif loop.index == 3 %}<span class="rank-medal">&#129353;</span>
+            {% else %}<span style="color:#334155">{{ loop.index }}</span>{% endif %}
+          </td>
+          <td>
+            <span style="font-weight:600;color:#e2e8f0">{{ p.username }}</span>
+            {% if session.get('user') == p.username %}
+              <span style="font-size:.7rem;color:#f5c518;margin-left:6px;background:#132238;padding:2px 7px;border-radius:10px">você</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center"><span style="font-size:1.15rem;font-weight:800;color:#f5c518">{{ p.total_pontos }}</span></td>
+          <td style="text-align:center"><span class="pts-badge pts-5">{{ p.acertos_exatos }}</span></td>
+          <td style="text-align:center">
+            <span class="pts-badge {% if p.acertos_brasil > 0 %}pts-5{% else %}pts-pending{% endif %}">{{ p.acertos_brasil }}</span>
+          </td>
+          <td style="text-align:center"><span class="pts-badge pts-2">{{ p.acertos_resultado }}</span></td>
+          <td style="text-align:center;color:#475569;font-size:.85rem">{{ p.total_palpites }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:#334155">
+          Nenhum participante ainda. <a href="{{ url_for('cadastro') }}">Seja o primeiro!</a>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Pontuação + Desempate Grupos ── #}
+  <div class="card">
+    <div class="card-title">&#9917; Regras — Fase de Grupos</div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:.72rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Pontuação</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px;flex:1;min-width:130px">
+          <span class="pts-badge pts-5" style="width:40px;font-size:.85rem">5 pts</span>
+          <div>
+            <div style="font-weight:700;color:#4ade80;font-size:.85rem">Placar Exato</div>
+            <div style="color:#334155;font-size:.72rem">Ex: 2×1, foi 2×1</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px;flex:1;min-width:130px">
+          <span class="pts-badge pts-2" style="width:40px;font-size:.85rem">2 pts</span>
+          <div>
+            <div style="font-weight:700;color:#facc15;font-size:.85rem">Resultado Certo</div>
+            <div style="color:#334155;font-size:.72rem">Vitória / empate / derrota</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#071428;border-radius:9px;flex:1;min-width:130px">
+          <span class="pts-badge pts-0" style="width:40px;font-size:.85rem">0 pts</span>
+          <div>
+            <div style="font-weight:700;color:#475569;font-size:.85rem">Errou</div>
+            <div style="color:#334155;font-size:.72rem">Placar e resultado errados</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #0f2540;padding-top:14px">
+      <div style="font-size:.72rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Critérios de Desempate</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#4ade80;white-space:nowrap">1°</span>
+          <span style="font-size:.85rem;color:#cbd5e1">Mais <strong style="color:#4ade80">Placares Exatos</strong> (coluna verde)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#4ade80;white-space:nowrap">2°</span>
+          <span style="font-size:.85rem;color:#cbd5e1">Acertou o <strong style="color:#4ade80">placar exato dos jogos do Brasil</strong> &#127470;&#127479; (jogos #7, #29, #49)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#132238;border:1px solid #1e3a5f;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#64748b;white-space:nowrap">3°</span>
+          <span style="font-size:.85rem;color:#94a3b8">Se persistir o empate → <strong style="color:#e2e8f0">divide o valor</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ═══════════════════════ MATA-MATA ═══════════════════════ #}
+<div id="pane-mm" style="display:none">
+  <p style="color:#475569;font-size:.8rem;margin-bottom:16px">{{ total_finished_mm }} jogo(s) encerrado(s) · {{ total_players }} participante(s)</p>
+
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:44px;text-align:center">#</th>
+          <th>Jogador</th>
+          <th style="text-align:center">Pontos</th>
+          <th style="text-align:center" title="Placar exato nos 90 min (5pts) — critério 1 desempate">Exatos 90'</th>
+          <th style="text-align:center" title="Resultado certo nos 90 min (3pts)">Result. 90'</th>
+          <th style="text-align:center" title="Placar exato na prorrogação (2pts)">Exatos ET</th>
+          <th style="text-align:center" title="Resultado certo na prorrogação (1pt)">Result. ET</th>
+          <th style="text-align:center">Palpites</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in players_mm %}
+        <tr {% if session.get('user') == p.username %}style="background:#071428!important"{% endif %}>
+          <td style="text-align:center;font-weight:800;font-size:1rem">
+            {% if loop.index == 1 %}<span class="rank-medal">&#129351;</span>
+            {% elif loop.index == 2 %}<span class="rank-medal">&#129352;</span>
+            {% elif loop.index == 3 %}<span class="rank-medal">&#129353;</span>
+            {% else %}<span style="color:#334155">{{ loop.index }}</span>{% endif %}
+          </td>
+          <td>
+            <span style="font-weight:600;color:#e2e8f0">{{ p.username }}</span>
+            {% if session.get('user') == p.username %}
+              <span style="font-size:.7rem;color:#f5c518;margin-left:6px;background:#132238;padding:2px 7px;border-radius:10px">você</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center"><span style="font-size:1.15rem;font-weight:800;color:#f5c518">{{ p.total_pontos }}</span></td>
+          <td style="text-align:center"><span class="pts-badge pts-5">{{ p.acertos_exatos }}</span></td>
+          <td style="text-align:center">
+            <span class="pts-badge" style="background:#0a1a30;color:#fbbf24;border:1px solid #ca8a04;width:36px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;font-size:.75rem;font-weight:800">
+              {{ p.acertos_resultado }}
+            </span>
+          </td>
+          <td style="text-align:center"><span class="pts-badge pts-2">{{ p.acertos_et_exatos }}</span></td>
+          <td style="text-align:center">
+            <span class="pts-badge" style="background:#0a1428;color:#93c5fd;border:1px solid #3b82f6;width:36px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;font-size:.75rem;font-weight:800">
+              {{ p.acertos_et_resultado }}
+            </span>
+          </td>
+          <td style="text-align:center;color:#475569;font-size:.85rem">{{ p.total_palpites }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:#334155">
+          Nenhum resultado de mata-mata disponível ainda.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Pontuação + Desempate Mata-Mata ── #}
+  <div class="card">
+    <div class="card-title">&#127942; Regras — Mata-Mata</div>
+
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:14px">
+      Você aposta <strong style="color:#cbd5e1">um único placar</strong> por jogo. A pontuação depende de como o jogo foi encerrado:
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+
+      <div style="background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:12px 14px">
+        <div style="font-size:.72rem;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #0f2540">
+          &#128336; Encerrado nos 90 min
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge pts-5" style="width:40px">5 pts</span>
+            <div>
+              <div style="font-weight:700;color:#4ade80;font-size:.83rem">Placar exato</div>
+              <div style="color:#334155;font-size:.72rem">Ex: apostou 2×1, foi 2×1</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge" style="width:40px;background:#0a1a30;color:#fbbf24;border:1px solid #ca8a04">3 pts</span>
+            <div>
+              <div style="font-weight:700;color:#fbbf24;font-size:.83rem">Resultado certo</div>
+              <div style="color:#334155;font-size:.72rem">Acertou quem vence (ou empate)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge pts-0" style="width:40px">0 pts</span>
+            <div>
+              <div style="font-weight:700;color:#475569;font-size:.83rem">Errou</div>
+              <div style="color:#334155;font-size:.72rem">Resultado errado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#071428;border:1px solid #f5c518;border-radius:10px;padding:12px 14px">
+        <div style="font-size:.72rem;font-weight:800;color:#f5c518;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #132238">
+          &#9203; Prorrogação / Pênaltis
+        </div>
+        <div style="font-size:.72rem;color:#334155;margin-bottom:8px">Comparado com o placar <em>final</em> após a prorrogação</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge pts-2" style="width:40px">2 pts</span>
+            <div>
+              <div style="font-weight:700;color:#60a5fa;font-size:.83rem">Placar exato (ET)</div>
+              <div style="color:#334155;font-size:.72rem">Ex: apostou 2×1, ET foi 2×1</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge" style="width:40px;background:#0a1428;color:#93c5fd;border:1px solid #3b82f6">1 pt</span>
+            <div>
+              <div style="font-weight:700;color:#93c5fd;font-size:.83rem">Resultado certo (ET)</div>
+              <div style="color:#334155;font-size:.72rem">Acertou quem avança</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pts-badge pts-0" style="width:40px">0 pts</span>
+            <div>
+              <div style="font-weight:700;color:#475569;font-size:.83rem">Errou</div>
+              <div style="color:#334155;font-size:.72rem">Resultado errado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="border-top:1px solid #0f2540;padding-top:14px">
+      <div style="font-size:.72rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Critérios de Desempate</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#4ade80;white-space:nowrap">1°</span>
+          <span style="font-size:.85rem;color:#cbd5e1">Mais <strong style="color:#4ade80">Placares Exatos nos 90 min</strong> (5 pts)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#132238;border:1px solid #1e3a5f;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#fbbf24;white-space:nowrap">2°</span>
+          <span style="font-size:.85rem;color:#cbd5e1">Mais <strong style="color:#fbbf24">Resultados corretos nos 90 min</strong> (3 pts)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#071428;border-radius:9px">
+          <span style="background:#132238;border:1px solid #1e3a5f;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:800;color:#64748b;white-space:nowrap">3°</span>
+          <span style="font-size:.85rem;color:#94a3b8">Se persistir o empate → <strong style="color:#e2e8f0">divide o valor</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:10px;text-align:center;font-size:.78rem;color:#1e3a5f">
+  Pontuação atualizada automaticamente quando o admin insere os resultados.
+</div>
+
+<script>
+function showTab(tab) {
+  ['group','mm'].forEach(function(t) {
+    var pane = document.getElementById('pane-' + t);
+    var btn  = document.getElementById('tab-' + t);
+    if (t === tab) {
+      pane.style.display = '';
+      btn.style.background = '#0d1f38';
+      btn.style.color = '#f5c518';
+      btn.style.border = '1px solid #1e3a5f';
+    } else {
+      pane.style.display = 'none';
+      btn.style.background = 'transparent';
+      btn.style.color = '#64748b';
+      btn.style.border = 'none';
+    }
+  });
+}
+if (window.location.hash === '#matamata') showTab('mm');
+</script>
+{% endblock %}

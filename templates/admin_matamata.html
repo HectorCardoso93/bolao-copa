@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Admin — Mata-Mata{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <h2 style="color:#f5c518;font-size:1.4rem;font-weight:800">&#128202; Painel Admin</h2>
+  <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-sm">Sair</a>
+</div>
+
+<div class="admin-tabs">
+  <a href="{{ url_for('admin_jogos') }}"     class="admin-tab">&#9917; Fase de Grupos</a>
+  <a href="{{ url_for('admin_matamata') }}"  class="admin-tab ativo">&#127942; Mata-Mata</a>
+  <a href="{{ url_for('admin_prazos') }}"    class="admin-tab">&#9201; Prazos</a>
+  <a href="{{ url_for('admin_jogadores') }}" class="admin-tab">&#128100; Jogadores</a>
+</div>
+
+{# ── Legenda de pontuação ── #}
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+  <div style="flex:1;min-width:190px;background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:10px 14px">
+    <div style="font-size:.65rem;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128336; Seção 90 Minutos</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span style="display:flex;align-items:center;gap:5px;font-size:.8rem"><span class="pts-badge pts-5">5</span><span style="color:#4ade80">Placar exato</span></span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.8rem"><span class="pts-badge pts-3">3</span><span style="color:#fbbf24">Resultado certo</span></span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.8rem"><span class="pts-badge pts-0">0</span><span style="color:#475569">Errou</span></span>
+    </div>
+  </div>
+  <div style="flex:1;min-width:190px;background:#071428;border:1px solid #f5c518;border-radius:10px;padding:10px 14px">
+    <div style="font-size:.65rem;font-weight:800;color:#f5c518;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#9203; Seção Prorrogação</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span style="display:flex;align-items:center;gap:5px;font-size:.8rem"><span class="pts-badge pts-1">1</span><span style="color:#93c5fd">Acertou (exato ou resultado)</span></span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.8rem"><span class="pts-badge pts-0">0</span><span style="color:#475569">Errou</span></span>
+    </div>
+  </div>
+</div>
+
+<form method="post">
+  {% for key, group in groups.items() %}
+  <div class="section-header">{{ group.label }}</div>
+  <div class="card" style="padding:8px 16px">
+    {% for item in group.matches %}
+    {% set m = item.match %}
+    <input type="hidden" name="match_ids" value="{{ m.id }}">
+
+    <div style="padding:14px 4px;border-bottom:1px solid #071428">
+
+      {# ── Cabeçalho: número + times + data ── #}
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="match-num" style="min-width:32px">#{{ m.match_number }}</span>
+        <input type="text" name="home_team_{{ m.id }}" value="{{ m.home_team }}"
+               style="flex:1;min-width:80px;padding:5px 9px;background:#071428;border:1.5px solid #1e3a5f;border-radius:7px;color:#cbd5e1;font-size:.85rem;font-weight:600;text-align:right">
+        <span style="color:#334155;font-size:.8rem;font-weight:700">vs</span>
+        <input type="text" name="away_team_{{ m.id }}" value="{{ m.away_team }}"
+               style="flex:1;min-width:80px;padding:5px 9px;background:#071428;border:1.5px solid #1e3a5f;border-radius:7px;color:#cbd5e1;font-size:.85rem;font-weight:600">
+        <span class="match-date-col">{{ m.match_date }}</span>
+      </div>
+
+      {# ── Dois blocos lado a lado ── #}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding-left:40px">
+
+        {# ═══ Bloco 90 Minutos ═══ #}
+        <div style="flex:1;min-width:200px;background:#071428;border:1.5px solid {% if m.is_finished %}#16a34a{% else %}#1e3a5f{% endif %};border-radius:10px;padding:12px 14px">
+          <div style="font-size:.68rem;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+            &#128336; 90 Minutos · 5pts exato / 3pts resultado
+          </div>
+
+          {# Placar 90 min #}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="font-size:.72rem;color:#64748b;font-weight:700;white-space:nowrap">Placar:</span>
+            <input type="number" name="home_{{ m.id }}" class="score-input"
+                   value="{{ m.home_score if m.home_score is not none else '' }}"
+                   min="0" max="99" placeholder="0">
+            <span class="score-sep">×</span>
+            <input type="number" name="away_{{ m.id }}" class="score-input"
+                   value="{{ m.away_score if m.away_score is not none else '' }}"
+                   min="0" max="99" placeholder="0">
+          </div>
+
+          {# Checkbox encerrado 90 min #}
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:{% if m.is_finished %}#0a1e14{% else %}transparent{% endif %};border:1px solid {% if m.is_finished %}#16a34a{% else %}#0f2540{% endif %};border-radius:7px">
+            <input type="checkbox" name="finished_90_{{ m.id }}" value="1"
+                   {% if m.is_finished %}checked{% endif %}
+                   style="accent-color:#4ade80;width:15px;height:15px;cursor:pointer">
+            <span style="font-size:.82rem;font-weight:700;color:{% if m.is_finished %}#4ade80{% else %}#475569{% endif %}">
+              Encerrado nos 90 minutos
+            </span>
+          </label>
+        </div>
+
+        {# ═══ Bloco Prorrogação ═══ #}
+        <div style="flex:1;min-width:200px;background:#071428;border:1.5px solid {% if m.extra_time %}#f5c518{% else %}#132238{% endif %};border-radius:10px;padding:12px 14px;opacity:{% if m.is_finished %}1{% else %}0.5{% endif %}">
+          <div style="font-size:.68rem;font-weight:800;color:#f5c518;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+            &#9203; Prorrogação · 1pt acertou / 0 errou
+          </div>
+
+          {# Placar ET #}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="font-size:.72rem;color:#64748b;font-weight:700;white-space:nowrap">Placar ET:</span>
+            <input type="number" name="et_home_{{ m.id }}" class="score-input"
+                   value="{{ m.et_home_score if m.et_home_score is not none else '' }}"
+                   min="0" max="99" placeholder="0"
+                   style="border-color:#f5c518">
+            <span class="score-sep" style="color:#f5c518">×</span>
+            <input type="number" name="et_away_{{ m.id }}" class="score-input"
+                   value="{{ m.et_away_score if m.et_away_score is not none else '' }}"
+                   min="0" max="99" placeholder="0"
+                   style="border-color:#f5c518">
+          </div>
+
+          {# Checkbox houve prorrogação #}
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:{% if m.extra_time %}#0d1228{% else %}transparent{% endif %};border:1px solid {% if m.extra_time %}#f5c518{% else %}#0f2540{% endif %};border-radius:7px">
+            <input type="checkbox" name="has_et_{{ m.id }}" value="1"
+                   {% if m.extra_time %}checked{% endif %}
+                   style="accent-color:#f5c518;width:15px;height:15px;cursor:pointer">
+            <span style="font-size:.82rem;font-weight:700;color:{% if m.extra_time %}#f5c518{% else %}#475569{% endif %}">
+              Houve prorrogação
+            </span>
+          </label>
+        </div>
+
+      </div>{# /dois blocos #}
+
+      {# ── Resumo atual ── #}
+      {% if m.is_finished %}
+      <div style="font-size:.72rem;margin-top:10px;padding-left:40px;color:#334155;display:flex;gap:16px;flex-wrap:wrap">
+        <span>&#10003; 90min: <strong style="color:#4ade80">{{ m.home_score }} × {{ m.away_score }}</strong></span>
+        {% if m.extra_time %}
+          <span>&#9203; ET: <strong style="color:#f5c518">{{ m.et_home_score if m.et_home_score is not none else '—' }} × {{ m.et_away_score if m.et_away_score is not none else '—' }}</strong></span>
+        {% else %}
+          <span style="color:#1e3a5f">Sem prorrogação</span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>{# /jogo #}
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <div class="sticky-bar">
+    <button type="submit" class="btn btn-success btn-lg">&#10003; Salvar e Recalcular Pontuação</button>
+  </div>
+</form>
+{% endblock %}

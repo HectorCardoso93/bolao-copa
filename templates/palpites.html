@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% block title %}Meus Palpites — Bolão Copa 2026{% endblock %}
+{% block content %}
+
+{% if mode == 'confirmado' %}
+<div class="confirm-banner">
+  <div style="font-size:2.5rem;margin-bottom:10px">&#10003;</div>
+  <h2>Palpites salvos com sucesso!</h2>
+  <p>Seus {{ total_palpites }} palpites foram registrados.</p>
+  <div class="actions">
+    <a href="{{ url_for('palpites_pdf') }}" class="btn btn-primary btn-lg">&#128196; Baixar PDF</a>
+    <a href="{{ url_for('palpites') }}?modo=editar" class="btn btn-outline btn-lg">&#9998; Editar</a>
+    <a href="{{ url_for('classificacao') }}" class="btn btn-outline btn-lg">&#127942; Classificação</a>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+  <div>
+    <h2 style="color:#f5c518;font-size:1.4rem;font-weight:800">Meus Palpites</h2>
+    <p style="color:#475569;font-size:.82rem;margin-top:3px">{{ total_palpites }} palpites registrados</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a href="{{ url_for('palpites_pdf') }}" class="btn btn-primary">&#128196; Baixar PDF</a>
+    {% if mode == 'view' %}
+    <a href="{{ url_for('palpites') }}?modo=editar" class="btn btn-outline">&#9998; Editar</a>
+    {% elif has_predictions %}
+    <a href="{{ url_for('palpites') }}" class="btn btn-outline btn-sm">&#10005; Cancelar</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if total_pts > 0 %}
+<div style="background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <span style="color:#64748b;font-size:.85rem">Sua pontuação atual:</span>
+  <span style="color:#f5c518;font-size:1.4rem;font-weight:800">{{ total_pts }} pontos</span>
+</div>
+{% endif %}
+
+{# ── Prazo ── #}
+{% if groups_closed %}
+<div style="background:#1a0a00;border:1px solid #b45309;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:.83rem">
+  <span style="font-size:1.2rem">&#128274;</span>
+  <span style="color:#f59e0b;font-weight:700">Fase de Grupos encerrada</span>
+  <span style="color:#78350f">— palpites dos grupos bloqueados. O mata-mata ainda pode ser editado.</span>
+</div>
+{% else %}
+<div style="background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:10px 16px;margin-bottom:12px;font-size:.82rem;color:#64748b;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <span>&#9201; Prazo grupos: <strong style="color:#f5c518">10/06/2026 às 19h (Brasília)</strong></span>
+  <span style="margin-left:auto" id="cd-inline">
+    <span id="ci-days">{{ deadline.days }}</span>d
+    <span id="ci-hours">{{ '%02d'|format(deadline.hours) }}</span>h
+    <span id="ci-mins">{{ '%02d'|format(deadline.minutes) }}</span>m
+    <span id="ci-secs">{{ '%02d'|format(deadline.seconds) }}</span>s
+  </span>
+</div>
+{% endif %}
+
+{# ── Legenda ── #}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+  <div style="flex:1;min-width:170px;background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:9px 13px">
+    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">&#9917; Fase de Grupos</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:#94a3b8"><span class="pts-badge pts-5" style="margin:0">5</span>exato</span>
+      <span style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:#94a3b8"><span class="pts-badge pts-2" style="margin:0">2</span>resultado</span>
+      <span style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:#94a3b8"><span class="pts-badge pts-0" style="margin:0">0</span>errou</span>
+    </div>
+  </div>
+  <div style="flex:1;min-width:230px;background:#071428;border:1px solid #f5c518;border-radius:10px;padding:9px 13px">
+    <div style="font-size:.65rem;font-weight:800;color:#f5c518;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">&#127942; Mata-Mata — um palpite, duas avaliações</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:.7rem;color:#4ade80;font-weight:700">90min:</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:.75rem;color:#94a3b8"><span class="pts-badge pts-5" style="margin:0">5</span>exato</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:.75rem;color:#94a3b8"><span class="pts-badge pts-3" style="margin:0">3</span>result.</span>
+      <span style="color:#1e3a5f">+</span>
+      <span style="font-size:.7rem;color:#f5c518;font-weight:700">prorrog.:</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:.75rem;color:#94a3b8"><span class="pts-badge pts-1" style="margin:0">1</span>acertou</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:.75rem;color:#94a3b8"><span class="pts-badge pts-0" style="margin:0">0</span>errou</span>
+    </div>
+  </div>
+</div>
+
+{% set show_form = (mode not in ('view','confirmado')) %}
+{% if show_form %}<form method="post" id="form-palpites">{% endif %}
+
+{% set ns = namespace(prev_stage='', shown_mm_header=false) %}
+
+{% for key, group in groups.items() %}
+
+{# ── Banner Mata-Mata ── #}
+{% if group.stage != 'group' and not ns.shown_mm_header %}
+  {% set ns.shown_mm_header = true %}
+  <div style="display:flex;align-items:center;gap:12px;margin:32px 0 8px">
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,transparent,#1e3a5f)"></div>
+    <span style="color:#f5c518;font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;padding:4px 14px;border:1px solid #f5c518;border-radius:20px">&#127942; Mata-Mata</span>
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,#1e3a5f,transparent)"></div>
+  </div>
+{% endif %}
+
+{# ── Separador entre rodadas ── #}
+{% if group.stage != 'group' and group.stage != ns.prev_stage and ns.prev_stage != '' and ns.prev_stage != 'group' %}
+<div style="display:flex;align-items:center;gap:10px;margin:18px 0 4px">
+  <div style="flex:1;height:1px;background:#0f2540"></div>
+  <span style="font-size:.64rem;color:#1e3a5f;font-weight:700;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">próxima fase</span>
+  <div style="flex:1;height:1px;background:#0f2540"></div>
+</div>
+{% endif %}
+{% set ns.prev_stage = group.stage %}
+
+<div class="section-header" style="{% if group.stage != 'group' %}border-left-color:#f5c518{% endif %}">{{ group.label }}</div>
+<div class="card" style="padding:8px 16px;{% if group.stage != 'group' %}border-color:#132238{% endif %}">
+  {% for item in group.matches %}
+  {% set m = item.match %}
+  {% set p = item.pred %}
+  {% set match_locked = m.is_finished or (group.stage == 'group' and groups_closed) %}
+  {% set match_editable = show_form and not match_locked %}
+
+  {# ══════════════════════════════════════
+     MODO EDIÇÃO — igual para todos os jogos
+  ══════════════════════════════════════ #}
+  {% if match_editable %}
+  <div class="match-row">
+    <span class="match-num">#{{ m.match_number }}</span>
+    <div style="display:grid;grid-template-columns:1fr 46px 20px 46px 1fr;align-items:center;gap:6px">
+      <span class="team team-home">{{ m.home_team }}</span>
+      <input type="number" name="home_{{ m.match_number }}" class="score-input"
+             value="{{ p.home_score if p else '' }}" min="0" max="99" placeholder="0">
+      <span class="score-sep" style="text-align:center">×</span>
+      <input type="number" name="away_{{ m.match_number }}" class="score-input"
+             value="{{ p.away_score if p else '' }}" min="0" max="99" placeholder="0">
+      <span class="team team-away">{{ m.away_team }}</span>
+    </div>
+    <span class="match-date-col">{{ m.match_date }}</span>
+    <div class="match-status" style="display:flex;align-items:center;justify-content:flex-end">
+      <span class="pts-badge pts-pending">—</span>
+    </div>
+  </div>
+
+  {# ══════════════════════════════════════
+     MODO VISUALIZAÇÃO
+  ══════════════════════════════════════ #}
+  {% else %}
+
+  {# ── Jogo SEM prorrogação ou fase de grupos ── #}
+  {% if not m.is_finished or not m.extra_time or group.stage == 'group' %}
+  <div class="match-row">
+    <span class="match-num">#{{ m.match_number }}</span>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px">
+      <span class="team team-home">{{ m.home_team }}</span>
+      {% if p %}
+        <span style="background:#071428;border:1px solid #1e3a5f;border-radius:8px;padding:4px 12px;font-size:.95rem;font-weight:800;color:#f5c518;white-space:nowrap;min-width:60px;text-align:center">
+          {{ p.home_score }} × {{ p.away_score }}
+        </span>
+      {% else %}
+        <span style="color:#1e3a5f;font-size:.8rem;padding:4px 12px;min-width:60px;text-align:center">—</span>
+      {% endif %}
+      <span class="team team-away">{{ m.away_team }}</span>
+    </div>
+    <span class="match-date-col">{{ m.match_date }}</span>
+    <div class="match-status" style="display:flex;align-items:center;justify-content:flex-end;gap:4px">
+      {% if m.is_finished %}
+        <span class="badge-enc">ENC.</span>
+        {% if p %}
+          {% set pts = p.pts_90 if p.pts_90 is defined else p.points %}
+          {% if pts == 5 %}<span class="pts-badge pts-5">5</span>
+          {% elif pts == 3 %}<span class="pts-badge pts-3">3</span>
+          {% elif pts == 2 %}<span class="pts-badge pts-2">2</span>
+          {% elif pts == 1 %}<span class="pts-badge pts-1">1</span>
+          {% else %}<span class="pts-badge pts-0">0</span>{% endif %}
+        {% endif %}
+      {% elif group.stage == 'group' and groups_closed %}
+        <span class="badge-enc" style="color:#b45309;border-color:#92400e">BLOQ.</span>
+      {% else %}
+        <span class="pts-badge pts-pending">—</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Jogo COM prorrogação (mata-mata apenas) ── #}
+  {% else %}
+  <div style="padding:10px 4px;border-bottom:1px solid #071428">
+
+    {# Cabeçalho do jogo #}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <span class="match-num">#{{ m.match_number }}</span>
+      <span class="team team-home" style="flex:1;text-align:right">{{ m.home_team }}</span>
+      <span style="color:#334155;font-size:.78rem">vs</span>
+      <span class="team team-away" style="flex:1">{{ m.away_team }}</span>
+      <span class="match-date-col">{{ m.match_date }}</span>
+      <span class="badge-enc">ENC.</span>
+    </div>
+
+    {# Meu palpite #}
+    {% if p %}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding-left:40px">
+
+      {# Bloco 90 min #}
+      <div style="flex:1;min-width:140px;background:#071428;border:1.5px solid {% if p.pts_90 == 5 %}#16a34a{% elif p.pts_90 == 3 %}#d97706{% else %}#1c1c1c{% endif %};border-radius:9px;padding:8px 12px">
+        <div style="font-size:.62rem;color:#4ade80;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
+          <span>&#128336; 90 min</span>
+          {% if p.pts_90 == 5 %}<span class="pts-badge pts-5" style="margin:0">5</span>
+          {% elif p.pts_90 == 3 %}<span class="pts-badge pts-3" style="margin:0">3</span>
+          {% else %}<span class="pts-badge pts-0" style="margin:0">0</span>{% endif %}
+        </div>
+        <div style="font-size:.82rem;font-weight:700;color:#f5c518;text-align:center">
+          Palpite: {{ p.home_score }} × {{ p.away_score }}
+        </div>
+        <div style="font-size:.72rem;color:#334155;text-align:center;margin-top:3px">
+          Real: {{ m.home_score }} × {{ m.away_score }}
+        </div>
+      </div>
+
+      {# Bloco Prorrogação #}
+      <div style="flex:1;min-width:140px;background:#071428;border:1.5px solid {% if p.pts_et == 2 %}#16a34a{% elif p.pts_et == 1 %}#3b82f6{% else %}#1c1c1c{% endif %};border-radius:9px;padding:8px 12px">
+        <div style="font-size:.62rem;color:#f5c518;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
+          <span>&#9203; Prorrogação</span>
+          {% if p.pts_et == 2 %}<span class="pts-badge pts-2" style="margin:0">2</span>
+          {% elif p.pts_et == 1 %}<span class="pts-badge pts-1" style="margin:0">1</span>
+          {% else %}<span class="pts-badge pts-0" style="margin:0">0</span>{% endif %}
+        </div>
+        <div style="font-size:.82rem;font-weight:700;color:#60a5fa;text-align:center">
+          Palpite: {{ p.home_score }} × {{ p.away_score }}
+        </div>
+        <div style="font-size:.72rem;color:#334155;text-align:center;margin-top:3px">
+          Real ET: {{ m.et_home_score }} × {{ m.et_away_score }}
+        </div>
+      </div>
+
+    </div>
+
+    {# Total do jogo #}
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px;padding-right:4px">
+      <span style="font-size:.72rem;color:#334155">Total:</span>
+      <span style="font-size:.95rem;font-weight:800;color:#f5c518">{{ p.points }} pts</span>
+    </div>
+    {% else %}
+    <div style="padding-left:40px;color:#1e3a5f;font-size:.8rem">— sem palpite</div>
+    {% endif %}
+
+  </div>
+  {% endif %}{# /com ET #}
+
+  {% endif %}{# /modo edição #}
+  {% endfor %}
+</div>
+{% endfor %}
+
+{% if show_form %}
+<div class="sticky-bar">
+  <div style="font-size:.8rem;color:#334155">
+    {% if groups_closed %}Mata-Mata{% else %}Grupos + Mata-Mata{% endif %} — preencha e salve
+  </div>
+  <button type="submit" class="btn btn-success btn-lg">&#10003; Salvar Palpites</button>
+</div>
+</form>
+{% else %}
+<div style="text-align:center;margin-top:24px;padding:20px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+  <a href="{{ url_for('palpites_pdf') }}" class="btn btn-primary btn-lg">&#128196; Baixar PDF</a>
+  <a href="{{ url_for('palpites') }}?modo=editar" class="btn btn-outline btn-lg">&#9998; Editar Palpites</a>
+</div>
+{% endif %}
+
+{% if not deadline.closed %}
+<script>
+(function(){
+  var dl = new Date('{{ deadline.deadline_iso }}');
+  function pad(n){return n<10?'0'+n:String(n)}
+  function tick(){
+    var diff = dl - new Date();
+    if(diff<=0) return;
+    var s=Math.floor(diff/1000);
+    var el=document.getElementById('ci-days'); if(el) el.textContent=Math.floor(s/86400);
+    el=document.getElementById('ci-hours'); if(el) el.textContent=pad(Math.floor((s%86400)/3600));
+    el=document.getElementById('ci-mins');  if(el) el.textContent=pad(Math.floor((s%3600)/60));
+    el=document.getElementById('ci-secs');  if(el) el.textContent=pad(s%60);
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>
+{% endif %}
+{% endblock %}

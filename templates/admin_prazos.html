@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Admin — Prazos{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <h2 style="color:#f5c518;font-size:1.4rem;font-weight:800">&#128202; Painel Admin</h2>
+  <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-sm">Sair</a>
+</div>
+
+<div class="admin-tabs">
+  <a href="{{ url_for('admin_jogos') }}"    class="admin-tab">&#9917; Fase de Grupos</a>
+  <a href="{{ url_for('admin_matamata') }}" class="admin-tab">&#127942; Mata-Mata</a>
+  <a href="{{ url_for('admin_prazos') }}"   class="admin-tab ativo">&#9201; Prazos</a>
+  <a href="{{ url_for('admin_jogadores') }}" class="admin-tab">&#128100; Jogadores</a>
+</div>
+
+<div style="background:#071428;border:1px solid #1e3a5f;border-radius:10px;padding:12px 16px;margin-bottom:22px;font-size:.82rem;color:#475569">
+  Defina a data e horário limite (horário de Brasília) para os usuários fazerem palpites em cada fase.
+  Após o prazo, os palpites daquela fase ficam <strong style="color:#94a3b8">bloqueados automaticamente</strong>.
+</div>
+
+<form method="post">
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:90px">
+    {% for phase in phases %}
+    <div class="card" style="padding:18px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1rem;font-weight:800;color:#f5c518">{{ phase.label }}</span>
+            {% if phase.closed %}
+            <span style="background:#0a2a1a;border:1px solid #16a34a;border-radius:5px;padding:2px 8px;font-size:.7rem;font-weight:700;color:#4ade80">ENCERRADO</span>
+            {% else %}
+            <span style="background:#071428;border:1px solid #1e3a5f;border-radius:5px;padding:2px 8px;font-size:.7rem;font-weight:700;color:#f5c518">ABERTO</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.8rem;color:#475569">
+            Prazo atual: <strong style="color:#cbd5e1">{{ phase.dt_fmt }}</strong>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div>
+            <label style="display:block;font-size:.72rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">
+              Nova data/hora
+            </label>
+            <input type="datetime-local"
+                   name="dl_{{ phase.stage }}"
+                   value="{{ phase.dt_str }}"
+                   style="padding:8px 12px;background:#071428;border:1.5px solid #1e3a5f;border-radius:8px;color:#e2e8f0;font-size:.9rem;outline:none;cursor:pointer"
+                   onfocus="this.style.borderColor='#f5c518'"
+                   onblur="this.style.borderColor='#1e3a5f'">
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sticky-bar">
+    <div style="font-size:.8rem;color:#334155">Horário de Brasília (UTC-3)</div>
+    <button type="submit" class="btn btn-success btn-lg">
+      &#10003; Salvar Todos os Prazos
+    </button>
+  </div>
+</form>
+{% endblock %}
