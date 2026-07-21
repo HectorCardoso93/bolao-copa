@@ -72,8 +72,9 @@ O sistema permite que os participantes realizem seus palpites para todos os jogo
 
 ---
 
-# 📂 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
+```text
 Bolao/
 │
 ├── app.py
@@ -93,6 +94,7 @@ Bolao/
 │   └── palpite.png
 │
 └── .git/
+```
 
 ---
 
